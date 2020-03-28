@@ -2,81 +2,96 @@ import React, { useState, useEffect } from "react";
 import "./global.css";
 import styled from "styled-components";
 
-// {
-//   "mapTransition": null,
-//   "handleMapTransitionOut": "ƒ () {}",
-//   "mapData": {
-//     "playerX": 2,
-//     "playerY": 4,
-//     "height": 9,
-//     "width": 7,
-//     "mapBackgroundColor": "#b2ddd0",
-//     "mapSong": "",
-//     "image": "/images/maps/masters/jrq/jrq-apartment.png",
-//     "walls": [
-//       "2x6",
-//       "4x6",
-//       "5x5",
-//       "5x4",
-//       "4x3",
-//       "3x2",
-//       "2x3",
-//       "1x4",
-//       "1x5",
-//       "4x5",
-//       "3x8",
-//       "2x7",
-//       "4x7"
-//     ],
-//     "interactives": [
-//       "{battleCrewSlot: 1, class: \"lead\", currentActionTyp…}"
-//     ],
-//     "interactiveActions": {
-//       "interactive_CtnoKpC3zIWBaj7": "[{…}]"
-//     },
-//     "triggers": [
-//       "{bypassOnStoryPoints: Array(1), id: \"cutscene_hs8lH…}",
-//       "{bypassOnStoryPoints: Array(1), id: \"cutscene_2Dq2G…}",
-//       "{id: \"transition_5PTjAl7XjQd2Epz\", interaction: Arr…}"
-//     ],
-//     "addExplodingSpaceAtHeroPosition": false
-//   },
-//   "pixelSize": 3,
-//   "globalCutsceneEvents": [],
-//   "handleSingleCutsceneEventCompleted": "ƒ () {}",
-//   "handleProvideNewCutsceneEvents": "ƒ () {}",
-//   "directionArrows": [],
-//   "actionKeyFireCache": 5,
-//   "pauseKeyFireCache": 0,
-//   "refreshPeopleList": null,
-//   "storyPointTrigger": 2,
-//   "acquiredStoryPoints": [
-//     "SP_JRQ_BeginOnboarding",
-//     "SP_JRQ_OnboardingStep2",
-//     "SP_JRQ_OnboardingJacobCorner",
-//     "SP_JRQ_JacobTextMessage",
-//     "SP_JRQ_GotJacobQuest",
-//     "SP_JRQ_GotApartmentLaptop",
-//     "pickup_outsideApartment_6Eq7kOFPnX"
-//   ]
-// }
-
-const map = {};
+const world = {
+  pixelSize: 4,
+  mapData: {
+    playerX: 1,
+    playerY: 1,
+    height: 14,
+    width: 22,
+    mapPxWidth: 704,
+    mapPxHeight: 448,
+    mapStyleWidth: 2816,
+    mapStyleHeight: 1792
+  }
+};
 const playerData = {};
-const global = {};
+const game = {};
+
+const renderGridCells = numCells => {
+  console.log(numCells);
+  let i = 0;
+
+  let cells = [];
+
+  for (; i < numCells; i++) {
+    cells.push(<div key={`grid-cell-${i}`}></div>);
+  }
+
+  console.log(cells.length);
+  return cells;
+};
 
 const App = () => {
   return (
     <div className="App">
-      <Map>
-        <Person x={1} y={1}></Person>
-      </Map>
+      <World>
+        <Map x={8} y={4}>
+          <Grid>
+            {renderGridCells(world.mapData.width * world.mapData.height)}
+          </Grid>
+        </Map>
+        <Person x={8} y={4}></Person>
+      </World>
     </div>
   );
 };
 
 const Map = ({ x, y, children }) => {
-  return <MapContainer>{children}</MapContainer>;
+  const [xPos, setXPos] = useState(x);
+  const [yPos, setYPos] = useState(y);
+
+  const keyedUp = useKeyPress("ArrowUp");
+  const keyedLeft = useKeyPress("ArrowLeft");
+  const keyedDown = useKeyPress("ArrowDown");
+  const keyedRight = useKeyPress("ArrowRight");
+
+  useEffect(() => {
+    if (keyedUp) {
+      setYPos(prevValue => {
+        return prevValue - 1;
+      });
+    }
+
+    if (keyedDown) {
+      setYPos(prevValue => {
+        return prevValue + 1;
+      });
+    }
+
+    if (keyedLeft) {
+      setXPos(prevValue => {
+        return prevValue - 1;
+      });
+    }
+
+    if (keyedRight) {
+      setXPos(prevValue => {
+        return prevValue + 1;
+      });
+    }
+  }, [keyedDown, keyedUp, keyedLeft, keyedRight]);
+  return (
+    <MapContainer
+      style={{
+        transform: `translate3d(-${getLeftPosition(xPos)}px, -${getTopPosition(
+          yPos
+        )}px, 0)`
+      }}
+    >
+      {children}
+    </MapContainer>
+  );
 };
 
 const Person = ({ x, y }) => {
@@ -113,6 +128,11 @@ const Person = ({ x, y }) => {
       });
     }
   }, [keyedDown, keyedUp, keyedLeft, keyedRight]);
+
+  useEffect(() => {
+    getLeftPosition(1);
+    getTopPosition(1);
+  }, []);
 
   // {
   //   "pixelSize": 3,
@@ -160,28 +180,33 @@ const Person = ({ x, y }) => {
   //   ]
   // }
 
-  getLeftPosition(1);
-  getTopPosition(1);
-
   return (
     <PersonContainer
-      style={{ left: getLeftPosition(xPos), top: getTopPosition(yPos) }}
-    ></PersonContainer>
+    // style={{ left: getLeftPosition(xPos), top: getTopPosition(yPos) }}
+    >
+      {`x: ${xPos}`}
+      <br />
+      {`y: ${yPos}`}
+    </PersonContainer>
   );
 };
 
 const getLeftPosition = xPos => {
-  // console.log(window.outerWidth);
-  const leftPos = ((96 * (96 * 5)) / window.outerWidth) * xPos;
-  // console.log(leftPos);
+  const gridWidth = world.mapData.mapStyleWidth;
+  const cellsAcross = world.mapData.width;
+  const cellWidth = gridWidth / cellsAcross;
+
+  const leftPos = cellWidth * xPos;
 
   return leftPos;
 };
 
 const getTopPosition = yPos => {
-  // console.log(window.outerHeight);
-  const topPos = ((96 * (96 * 5)) / window.outerHeight) * yPos;
-  // console.log(topPos);
+  const gridHeight = world.mapData.mapStyleHeight;
+  const cellsDown = world.mapData.height;
+  const cellHeight = gridHeight / cellsDown;
+
+  const topPos = cellHeight * yPos;
 
   return topPos;
 };
@@ -189,19 +214,46 @@ const getTopPosition = yPos => {
 const ViewPortContainer = styled.div``;
 
 const PersonContainer = styled.div`
-  width: 100px;
-  height: 100px;
+  width: 128px;
+  height: 128px;
   background: red;
   position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate3d(384px, 384px, 0);
+`;
+
+const World = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
 `;
 
 const MapContainer = styled.div`
-  width: 100%;
-  height: 100%;
+  height: 1792px;
+  width: 2816px;
+  background: url("./images/maps/jrq-outside-apartment.png") top left / cover
+    no-repeat border-box pink;
   position: relative;
+  /* background: pink; */
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(22, 1fr);
+  grid-template-rows: repeat(14, 1fr);
+  height: 1792px;
+  width: 2816px;
+  position: absolute;
   top: 0;
   left: 0;
-  background: pink;
+  div {
+    border: 1px dashed black;
+    border-width: 0 1px 1px 0;
+    display: flex; /* flex styling to center content in divs */
+    align-items: center;
+    justify-content: center;
+  }
 `;
 
 // Hook
