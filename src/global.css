@@ -12,6 +12,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+canvas {
+  image-rendering: pixelated;
+}
+
 .root {
   width: 100%;
   height: 100%;

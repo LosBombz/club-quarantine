@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import "./global.css";
 import styled from "styled-components";
 
@@ -56,6 +56,20 @@ const Map = ({ x, y, children }) => {
   const keyedDown = useKeyPress("ArrowDown");
   const keyedRight = useKeyPress("ArrowRight");
 
+  const canvas = useRef(null);
+
+  useLayoutEffect(() => {
+    const ctx = canvas.current.getContext("2d");
+
+    const image = new Image();
+
+    image.onload = () => {
+      ctx.drawImage(image, 0, 0, 704, 448);
+    };
+
+    image.src = "./images/maps/jrq-outside-apartment.png";
+  });
+
   useEffect(() => {
     if (keyedUp) {
       setYPos(prevValue => {
@@ -89,6 +103,13 @@ const Map = ({ x, y, children }) => {
         )}px, 0)`
       }}
     >
+      <canvas
+        id="mapCanvas"
+        ref={canvas}
+        width={704}
+        height={448}
+        style={{ height: "1792px", width: "2816px" }}
+      ></canvas>
       {children}
     </MapContainer>
   );
@@ -232,8 +253,8 @@ const World = styled.div`
 const MapContainer = styled.div`
   height: 1792px;
   width: 2816px;
-  background: url("./images/maps/jrq-outside-apartment.png") top left / cover
-    no-repeat border-box pink;
+  /* background: url("./images/maps/jrq-outside-apartment.png") top left / cover */
+  /* no-repeat border-box pink; */
   position: relative;
   /* background: pink; */
 `;
