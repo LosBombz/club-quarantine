@@ -15,8 +15,8 @@ const world = {
     mapStyleHeight: 1792
   }
 };
-const playerData = {};
-const game = {};
+// const playerData = {};
+// const game = {};
 
 const renderGridCells = numCells => {
   console.log(numCells);
@@ -34,16 +34,33 @@ const renderGridCells = numCells => {
 
 const App = () => {
   return (
-    <div className="App">
-      <World>
-        <Map x={8} y={4}>
-          <Grid>
-            {renderGridCells(world.mapData.width * world.mapData.height)}
-          </Grid>
-        </Map>
-        <Person x={8} y={4}></Person>
-      </World>
-    </div>
+    //     width: 100vw;
+    // height: 100vh;
+    // overflow: hidden;
+    // display: flex;
+    // justify-content: center;
+    // align-items: center;
+    // background: rgb(0, 0, 0);
+    <MainContainer
+      style={{
+        display: "flex",
+        overflow: "hidden",
+        justifyContent: "center",
+        alignItems: "center"
+      }}
+    >
+      <Main>
+        <WorldBackground></WorldBackground>
+        <World>
+          <Map x={8} y={4}>
+            <Grid>
+              {renderGridCells(world.mapData.width * world.mapData.height)}
+            </Grid>
+          </Map>
+          <Person x={8} y={4}></Person>
+        </World>
+      </Main>
+    </MainContainer>
   );
 };
 
@@ -64,7 +81,7 @@ const Map = ({ x, y, children }) => {
     const image = new Image();
 
     image.onload = () => {
-      ctx.drawImage(image, 0, 0, 704, 448);
+      ctx.drawImage(image, 0, 0);
     };
 
     image.src = "./images/maps/jrq-outside-apartment.png";
@@ -98,7 +115,7 @@ const Map = ({ x, y, children }) => {
   return (
     <MapContainer
       style={{
-        transform: `translate3d(-${getLeftPosition(xPos)}px, -${getTopPosition(
+        transform: `translate3d(${getLeftPosition(xPos)}px, ${getTopPosition(
           yPos
         )}px, 0)`
       }}
@@ -116,98 +133,76 @@ const Map = ({ x, y, children }) => {
 };
 
 const Person = ({ x, y }) => {
-  const [xPos, setXPos] = useState(x);
-  const [yPos, setYPos] = useState(y);
+  // const [xPos, setXPos] = useState(x);
+  // const [yPos, setYPos] = useState(y);
 
-  const keyedUp = useKeyPress("ArrowUp");
-  const keyedLeft = useKeyPress("ArrowLeft");
-  const keyedDown = useKeyPress("ArrowDown");
-  const keyedRight = useKeyPress("ArrowRight");
+  // const keyedUp = useKeyPress("ArrowUp");
+  // const keyedLeft = useKeyPress("ArrowLeft");
+  // const keyedDown = useKeyPress("ArrowDown");
+  // const keyedRight = useKeyPress("ArrowRight");
 
-  useEffect(() => {
-    if (keyedUp) {
-      setYPos(prevValue => {
-        return prevValue - 1;
-      });
-    }
+  const canvas = useRef(null);
 
-    if (keyedDown) {
-      setYPos(prevValue => {
-        return prevValue + 1;
-      });
-    }
+  useLayoutEffect(() => {
+    const ctx = canvas.current.getContext("2d");
 
-    if (keyedLeft) {
-      setXPos(prevValue => {
-        return prevValue - 1;
-      });
-    }
+    const image = new Image();
 
-    if (keyedRight) {
-      setXPos(prevValue => {
-        return prevValue + 1;
-      });
-    }
-  }, [keyedDown, keyedUp, keyedLeft, keyedRight]);
+    image.onload = () => {
+      ctx.drawImage(image, 0, 0, 128, 128);
+    };
 
-  useEffect(() => {
-    getLeftPosition(1);
-    getTopPosition(1);
-  }, []);
+    image.src = "./images/skins/people/ZAK-SHEET.png";
+  });
 
-  // {
-  //   "pixelSize": 3,
-  //   "cellSize": 96,
-  //   "skinId": "zak",
-  //   "transformValue": "translate3d(288px, 288px, 0)",
-  //   "direction": "RIGHT",
-  //   "movingProgress": 0,
-  //   "currentActionType": "characterStand",
-  //   "hasBattleLaptop": false,
-  //   "isDialogBoxUp": false
-  // }
+  // useEffect(() => {
+  //   if (keyedUp) {
+  //     setYPos(prevValue => {
+  //       return prevValue - 1;
+  //     });
+  //   }
 
-  // {
-  //   "interactives": [
-  //     {
-  //       "skinId": "zak",
-  //       "id": "hero",
-  //       "name": "Los",
-  //       "class": "lead",
-  //       "battleCrewSlot": 1,
-  //       "hp": 32,
-  //       "isAlwaysInBattleCrew": true,
-  //       "equippedAttacks": {
-  //         "slot1": "script_slice",
-  //         "slot2": "script_curl",
-  //         "slot3": null,
-  //         "slot4": null,
-  //         "slotSuper": null
-  //       },
-  //       "customMovingSpeed": 1.45454545455,
-  //       "isArrowControlled": true,
-  //       "x": 2,
-  //       "y": 5,
-  //       "direction": "LEFT",
-  //       "currentActionType": "characterStand",
-  //       "hasQuestIndicator": false,
-  //       "isHostile": false,
-  //       "hasBattleLaptop": false,
-  //       "doThisBehavior": null,
-  //       "currentlyExecutingBehavior": null,
-  //       "movingProgress": 0,
-  //       "isInternalEventFinished": true
-  //     }
-  //   ]
-  // }
+  //   if (keyedDown) {
+  //     setYPos(prevValue => {
+  //       return prevValue + 1;
+  //     });
+  //   }
+
+  //   if (keyedLeft) {
+  //     setXPos(prevValue => {
+  //       return prevValue - 1;
+  //     });
+  //   }
+
+  //   if (keyedRight) {
+  //     setXPos(prevValue => {
+  //       return prevValue + 1;
+  //     });
+  //   }
+  // }, [keyedDown, keyedUp, keyedLeft, keyedRight]);
+
+  // useEffect(() => {
+  //   getLeftPosition(1);
+  //   getTopPosition(1);
+  // }, []);
 
   return (
     <PersonContainer
     // style={{ left: getLeftPosition(xPos), top: getTopPosition(yPos) }}
     >
-      {`x: ${xPos}`}
+      {/* {`x: ${xPos}`}
       <br />
-      {`y: ${yPos}`}
+      {`y: ${yPos}`} */}
+      <PersonCrop>
+        <canvas
+          id="playerCanvas"
+          ref={canvas}
+          width={128}
+          height={128}
+          style={{ width: "512px", transform: "translate3d(0px, 0px, 0px)" }}
+          // width: 384px; transform: translate3d(0px, 0px, 0px); animation: 0s ease 0s 1 normal none running none;
+        ></canvas>
+      </PersonCrop>
     </PersonContainer>
   );
 };
@@ -217,31 +212,51 @@ const getLeftPosition = xPos => {
   const cellsAcross = world.mapData.width;
   const cellWidth = gridWidth / cellsAcross;
 
-  const leftPos = cellWidth * xPos;
+  const leftPos = -(cellWidth * xPos);
 
-  return leftPos;
+  console.log(leftPos);
+
+  return leftPos + 128;
 };
 
 const getTopPosition = yPos => {
   const gridHeight = world.mapData.mapStyleHeight;
   const cellsDown = world.mapData.height;
-  const cellHeight = gridHeight / cellsDown;
+  const cellHeight = -(gridHeight / cellsDown);
 
   const topPos = cellHeight * yPos;
 
-  return topPos;
+  console.log(topPos);
+
+  return topPos + 64;
 };
 
-const ViewPortContainer = styled.div``;
-
 const PersonContainer = styled.div`
+  opacity: 1;
+  transition: opacity 0.3s ease 0s;
+  position: absolute;
+  top: 0px;
+  left: 0px;
   width: 128px;
   height: 128px;
-  background: red;
-  position: absolute;
-  top: 0;
+  transform: translate3d(384px, 384px, 0px);
+`;
+
+const PersonCrop = styled.div`
+  height: 128px;
+  width: 128px;
+  overflow: hidden;
+  position: relative;
+`;
+
+const WorldBackground = styled.div`
+  position: fixed;
   left: 0;
-  transform: translate3d(384px, 384px, 0);
+  top: 0;
+  bottom: 0;
+  right: 0;
+  transition: background 0.2s ease 0s;
+  background: rgb(161, 242, 162);
 `;
 
 const World = styled.div`
@@ -253,10 +268,20 @@ const World = styled.div`
 const MapContainer = styled.div`
   height: 1792px;
   width: 2816px;
-  /* background: url("./images/maps/jrq-outside-apartment.png") top left / cover */
-  /* no-repeat border-box pink; */
   position: relative;
-  /* background: pink; */
+`;
+
+const MainContainer = styled.div`
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: rgb(0, 0, 0);
+`;
+
+const Main = styled.main`
+  position: relative;
+  width: 896px;
+  height: 896px;
 `;
 
 const Grid = styled.div`
@@ -277,27 +302,27 @@ const Grid = styled.div`
   }
 `;
 
-// Hook
+// useKeypress Hook
 function useKeyPress(targetKey) {
   // State for keeping track of whether key is pressed
   const [keyPressed, setKeyPressed] = useState(false);
 
-  // If pressed key is our target key then set to true
-  function downHandler({ key }) {
-    if (key === targetKey) {
-      setKeyPressed(true);
-    }
-  }
-
-  // If released key is our target key then set to false
-  const upHandler = ({ key }) => {
-    if (key === targetKey) {
-      setKeyPressed(false);
-    }
-  };
-
   // Add event listeners
   useEffect(() => {
+    // If pressed key is our target key then set to true
+    function downHandler({ key }) {
+      if (key === targetKey) {
+        setKeyPressed(true);
+      }
+    }
+
+    // If released key is our target key then set to false
+    const upHandler = ({ key }) => {
+      if (key === targetKey) {
+        setKeyPressed(false);
+      }
+    };
+
     window.addEventListener("keydown", downHandler);
     window.addEventListener("keyup", upHandler);
     // Remove event listeners on cleanup
@@ -305,7 +330,7 @@ function useKeyPress(targetKey) {
       window.removeEventListener("keydown", downHandler);
       window.removeEventListener("keyup", upHandler);
     };
-  }, []); // Empty array ensures that effect is only run on mount and unmount
+  }, [targetKey]); // Empty array ensures that effect is only run on mount and unmount
 
   return keyPressed;
 }
