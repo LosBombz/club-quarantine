@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import "./global.css";
 import styled from "styled-components";
 
-const world = {
+const worldData = {
   pixelSize: 4,
   mapData: {
     playerX: 1,
@@ -15,58 +15,54 @@ const world = {
     mapStyleHeight: 1792
   }
 };
-// const playerData = {};
-// const game = {};
+const playerData = {};
+const gameData = {};
 
-const renderGridCells = numCells => {
-  console.log(numCells);
-  let i = 0;
+const MapGrid = ({ mapWidth, mapHeight }) => {
+  const totalCells = mapWidth * mapHeight;
 
-  let cells = [];
+  const renderGridCells = (mapWidth, mapHeight) => {
+    let i = 0;
+    let j = 0;
+    let cells = [];
 
-  for (; i < numCells; i++) {
-    cells.push(<div key={`grid-cell-${i}`}></div>);
-  }
+    for (; i < mapHeight; i++) {
+      for (; j < mapWidth; j++) {
+        cells.push(<div key={`grid-cell-${j}x${i}`}>{`${j} x ${i}`}</div>);
+      }
+      j = 0;
+    }
+    console.log(cells.length, totalCells);
+    return cells;
+  };
 
-  console.log(cells.length);
-  return cells;
+  return <Grid>{renderGridCells(mapWidth, mapHeight)}</Grid>;
 };
 
 const App = () => {
   return (
-    //     width: 100vw;
-    // height: 100vh;
-    // overflow: hidden;
-    // display: flex;
-    // justify-content: center;
-    // align-items: center;
-    // background: rgb(0, 0, 0);
-    <MainContainer
-      style={{
-        display: "flex",
-        overflow: "hidden",
-        justifyContent: "center",
-        alignItems: "center"
-      }}
-    >
+    <MainContainer>
       <Main>
         <WorldBackground></WorldBackground>
         <World>
-          <Map x={8} y={4}>
-            <Grid>
-              {renderGridCells(world.mapData.width * world.mapData.height)}
-            </Grid>
+          <Map x={11} y={7} mapSrc="jrq-outside-apartment.png">
+            <MapGrid
+              mapWidth={worldData.mapData.width}
+              mapHeight={worldData.mapData.height}
+            ></MapGrid>
           </Map>
-          <Person x={8} y={4}></Person>
         </World>
       </Main>
     </MainContainer>
   );
 };
 
-const Map = ({ x, y, children }) => {
+const Map = ({ x, y, mapSrc, children }) => {
   const [xPos, setXPos] = useState(x);
   const [yPos, setYPos] = useState(y);
+  const [currentCoord, setCurrentCoord] = useState(`${xPos}x${yPos}`);
+
+  const walls = [[]];
 
   const keyedUp = useKeyPress("ArrowUp");
   const keyedLeft = useKeyPress("ArrowLeft");
@@ -74,6 +70,7 @@ const Map = ({ x, y, children }) => {
   const keyedRight = useKeyPress("ArrowRight");
 
   const canvas = useRef(null);
+  const mapBasePath = "./images/maps/";
 
   useLayoutEffect(() => {
     const ctx = canvas.current.getContext("2d");
@@ -84,7 +81,7 @@ const Map = ({ x, y, children }) => {
       ctx.drawImage(image, 0, 0);
     };
 
-    image.src = "./images/maps/jrq-outside-apartment.png";
+    image.src = `${mapBasePath}${mapSrc}`;
   });
 
   useEffect(() => {
@@ -112,36 +109,40 @@ const Map = ({ x, y, children }) => {
       });
     }
   }, [keyedDown, keyedUp, keyedLeft, keyedRight]);
+
+  useEffect(() => {
+    setCurrentCoord(`${xPos}x${yPos}`);
+  }, [yPos, xPos]);
   return (
-    <MapContainer
-      style={{
-        transform: `translate3d(${getLeftPosition(xPos)}px, ${getTopPosition(
-          yPos
-        )}px, 0)`
-      }}
-    >
-      <canvas
-        id="mapCanvas"
-        ref={canvas}
-        width={704}
-        height={448}
-        style={{ height: "1792px", width: "2816px" }}
-      ></canvas>
-      {children}
-    </MapContainer>
+    <>
+      <MapContainer
+        style={{
+          transform: `translate3d(${getLeftPosition(xPos)}px, ${getTopPosition(
+            yPos
+          )}px, 0)`
+        }}
+      >
+        <canvas
+          id="mapCanvas"
+          ref={canvas}
+          width={704}
+          height={448}
+          style={{ height: "1792px", width: "2816px" }}
+        ></canvas>
+        {children}
+      </MapContainer>
+      <Person
+        message={`I'm on cell ${currentCoord}`}
+        skinSrc="ZAK-SHEET.png"
+      ></Person>
+    </>
   );
 };
 
-const Person = ({ x, y }) => {
-  // const [xPos, setXPos] = useState(x);
-  // const [yPos, setYPos] = useState(y);
-
-  // const keyedUp = useKeyPress("ArrowUp");
-  // const keyedLeft = useKeyPress("ArrowLeft");
-  // const keyedDown = useKeyPress("ArrowDown");
-  // const keyedRight = useKeyPress("ArrowRight");
-
+const Person = ({ skinSrc, message }) => {
   const canvas = useRef(null);
+
+  const skinBasePath = "./images/skins/people/";
 
   useLayoutEffect(() => {
     const ctx = canvas.current.getContext("2d");
@@ -149,50 +150,15 @@ const Person = ({ x, y }) => {
     const image = new Image();
 
     image.onload = () => {
-      ctx.drawImage(image, 0, 0, 128, 128);
+      ctx.drawImage(image, 0, 0);
     };
 
-    image.src = "./images/skins/people/ZAK-SHEET.png";
+    image.src = `${skinBasePath}${skinSrc}`;
   });
 
-  // useEffect(() => {
-  //   if (keyedUp) {
-  //     setYPos(prevValue => {
-  //       return prevValue - 1;
-  //     });
-  //   }
-
-  //   if (keyedDown) {
-  //     setYPos(prevValue => {
-  //       return prevValue + 1;
-  //     });
-  //   }
-
-  //   if (keyedLeft) {
-  //     setXPos(prevValue => {
-  //       return prevValue - 1;
-  //     });
-  //   }
-
-  //   if (keyedRight) {
-  //     setXPos(prevValue => {
-  //       return prevValue + 1;
-  //     });
-  //   }
-  // }, [keyedDown, keyedUp, keyedLeft, keyedRight]);
-
-  // useEffect(() => {
-  //   getLeftPosition(1);
-  //   getTopPosition(1);
-  // }, []);
-
   return (
-    <PersonContainer
-    // style={{ left: getLeftPosition(xPos), top: getTopPosition(yPos) }}
-    >
-      {/* {`x: ${xPos}`}
-      <br />
-      {`y: ${yPos}`} */}
+    <PersonContainer>
+      <SpeechBubble>{message}</SpeechBubble>
       <PersonCrop>
         <canvas
           id="playerCanvas"
@@ -200,7 +166,6 @@ const Person = ({ x, y }) => {
           width={128}
           height={128}
           style={{ width: "512px", transform: "translate3d(0px, 0px, 0px)" }}
-          // width: 384px; transform: translate3d(0px, 0px, 0px); animation: 0s ease 0s 1 normal none running none;
         ></canvas>
       </PersonCrop>
     </PersonContainer>
@@ -208,27 +173,27 @@ const Person = ({ x, y }) => {
 };
 
 const getLeftPosition = xPos => {
-  const gridWidth = world.mapData.mapStyleWidth;
-  const cellsAcross = world.mapData.width;
+  const gridWidth = worldData.mapData.mapStyleWidth;
+  const cellsAcross = worldData.mapData.width;
   const cellWidth = gridWidth / cellsAcross;
 
-  const leftPos = -(cellWidth * xPos);
+  // 384 is an offset of 3 cells to 0 out the coordinate system
+  const leftPos = -(cellWidth * xPos) + 384;
 
-  console.log(leftPos);
-
-  return leftPos + 128;
+  return leftPos;
 };
 
 const getTopPosition = yPos => {
-  const gridHeight = world.mapData.mapStyleHeight;
-  const cellsDown = world.mapData.height;
-  const cellHeight = -(gridHeight / cellsDown);
+  const gridHeight = worldData.mapData.mapStyleHeight;
+  const cellsDown = worldData.mapData.height;
+  const cellHeight = gridHeight / cellsDown;
 
-  const topPos = cellHeight * yPos;
+  // 384 is an offset of 3 cells to 0 out the coordinate system
+  const topPos = -(cellHeight * yPos) + 384;
 
-  console.log(topPos);
-
+  // nudges our main character up half a cell
   return topPos + 64;
+  // return topPos;
 };
 
 const PersonContainer = styled.div`
@@ -240,6 +205,20 @@ const PersonContainer = styled.div`
   width: 128px;
   height: 128px;
   transform: translate3d(384px, 384px, 0px);
+`;
+
+const SpeechBubble = styled.div`
+  background: white;
+  font-weight: 800;
+  font-size: 18px;
+  border: 4px solid #000000;
+  position: absolute;
+  padding: 10px 15px;
+  top: -55px;
+  left: -64px;
+  width: 256px;
+  text-align: center;
+  z-index: 3;
 `;
 
 const PersonCrop = styled.div`
@@ -274,8 +253,11 @@ const MapContainer = styled.div`
 const MainContainer = styled.div`
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
   background: rgb(0, 0, 0);
+  display: flex;
+  overflow: hidden;
+  justify-content: center;
+  align-items: center;
 `;
 
 const Main = styled.main`
