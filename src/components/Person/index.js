@@ -1,4 +1,5 @@
 import React, { useLayoutEffect, useEffect, useRef, useState } from "react";
+
 import {
   PersonContainer,
   PersonCrop,
@@ -16,7 +17,7 @@ const directionsMap = {
 };
 
 const walk = (startWalk, endWalk) => {
-  let steps = 30;
+  let steps = 36;
   startWalk();
 
   const step = () => {

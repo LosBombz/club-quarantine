@@ -208,7 +208,7 @@ const MapContainer = styled.div`
   height: 1792px;
   width: 2816px;
   position: relative;
-  transition: 0.8s linear;
+  transition: 0.6s linear;
 `;
 
 const MainContainer = styled.div`
