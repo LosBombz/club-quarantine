@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
-import "./global.css";
 import styled from "styled-components";
+
+import MapGrid from "./components/Grid";
+import Person from "./components/Person";
+
+import useKeyPress from "./hooks/useKeyPress";
+
+import "./global.css";
 
 const worldData = {
   pixelSize: 4,
@@ -18,27 +24,6 @@ const worldData = {
 const playerData = {};
 const gameData = {};
 
-const MapGrid = ({ mapWidth, mapHeight }) => {
-  const totalCells = mapWidth * mapHeight;
-
-  const renderGridCells = (mapWidth, mapHeight) => {
-    let i = 0;
-    let j = 0;
-    let cells = [];
-
-    for (; i < mapHeight; i++) {
-      for (; j < mapWidth; j++) {
-        cells.push(<div key={`grid-cell-${j}x${i}`}>{`${j} x ${i}`}</div>);
-      }
-      j = 0;
-    }
-    console.log(cells.length, totalCells);
-    return cells;
-  };
-
-  return <Grid>{renderGridCells(mapWidth, mapHeight)}</Grid>;
-};
-
 const App = () => {
   return (
     <MainContainer>
@@ -46,10 +31,10 @@ const App = () => {
         <WorldBackground></WorldBackground>
         <World>
           <Map x={11} y={7} mapSrc="jrq-outside-apartment.png">
-            <MapGrid
+            {/* <MapGrid
               mapWidth={worldData.mapData.width}
               mapHeight={worldData.mapData.height}
-            ></MapGrid>
+            ></MapGrid> */}
           </Map>
         </World>
       </Main>
@@ -61,8 +46,10 @@ const Map = ({ x, y, mapSrc, children }) => {
   const [xPos, setXPos] = useState(x);
   const [yPos, setYPos] = useState(y);
   const [currentCoord, setCurrentCoord] = useState(`${xPos}x${yPos}`);
+  const [message, setMessage] = useState("");
+  const [currentDirection, setCurrentDirection] = useState("DOWN");
 
-  const walls = [[]];
+  const walls = ["12x6", "13x5", "14x5", "15x5", "12x7", "11x6", "10x6"];
 
   const keyedUp = useKeyPress("ArrowUp");
   const keyedLeft = useKeyPress("ArrowLeft");
@@ -86,31 +73,67 @@ const Map = ({ x, y, mapSrc, children }) => {
 
   useEffect(() => {
     if (keyedUp) {
+      setCurrentDirection("UP");
       setYPos(prevValue => {
+        if (walls.includes(`${xPos}x${prevValue - 1}`)) {
+          console.log(`wall at ${xPos}x${prevValue - 1}`);
+          setMessage(
+            `I can't move up. There's a wall at ${xPos}x${prevValue - 1}!`
+          );
+          return prevValue;
+        }
+
         return prevValue - 1;
       });
     }
 
     if (keyedDown) {
+      setCurrentDirection("DOWN");
       setYPos(prevValue => {
+        if (walls.includes(`${xPos}x${prevValue + 1}`)) {
+          console.log(`wall at ${xPos}x${prevValue + 1}`);
+          setMessage(
+            `I can't move down. There's a wall at ${xPos}x${prevValue + 1}!`
+          );
+          return prevValue;
+        }
         return prevValue + 1;
       });
     }
 
     if (keyedLeft) {
+      setCurrentDirection("LEFT");
       setXPos(prevValue => {
+        if (walls.includes(`${prevValue - 1}x${yPos}`)) {
+          console.log(`wall at ${prevValue - 1}x${yPos}`);
+          setMessage(
+            `I can't move left. There's a wall at ${prevValue - 1}x${yPos}!`
+          );
+          return prevValue;
+        }
+
         return prevValue - 1;
       });
     }
 
     if (keyedRight) {
+      setCurrentDirection("RIGHT");
       setXPos(prevValue => {
+        if (walls.includes(`${prevValue + 1}x${yPos}`)) {
+          console.log(`wall at ${prevValue + 1}x${yPos}`);
+          setMessage(
+            `I can't move right. There's a wall at ${prevValue + 1}x${yPos}!`
+          );
+          return prevValue;
+        }
+
         return prevValue + 1;
       });
     }
   }, [keyedDown, keyedUp, keyedLeft, keyedRight]);
 
   useEffect(() => {
+    setMessage(`I'm on cell ${xPos}x${yPos}`);
     setCurrentCoord(`${xPos}x${yPos}`);
   }, [yPos, xPos]);
   return (
@@ -132,43 +155,12 @@ const Map = ({ x, y, mapSrc, children }) => {
         {children}
       </MapContainer>
       <Person
-        message={`I'm on cell ${currentCoord}`}
+        message={message}
+        direction={currentDirection}
         skinSrc="ZAK-SHEET.png"
+        coord={currentCoord}
       ></Person>
     </>
-  );
-};
-
-const Person = ({ skinSrc, message }) => {
-  const canvas = useRef(null);
-
-  const skinBasePath = "./images/skins/people/";
-
-  useLayoutEffect(() => {
-    const ctx = canvas.current.getContext("2d");
-
-    const image = new Image();
-
-    image.onload = () => {
-      ctx.drawImage(image, 0, 0);
-    };
-
-    image.src = `${skinBasePath}${skinSrc}`;
-  });
-
-  return (
-    <PersonContainer>
-      <SpeechBubble>{message}</SpeechBubble>
-      <PersonCrop>
-        <canvas
-          id="playerCanvas"
-          ref={canvas}
-          width={128}
-          height={128}
-          style={{ width: "512px", transform: "translate3d(0px, 0px, 0px)" }}
-        ></canvas>
-      </PersonCrop>
-    </PersonContainer>
   );
 };
 
@@ -196,38 +188,6 @@ const getTopPosition = yPos => {
   // return topPos;
 };
 
-const PersonContainer = styled.div`
-  opacity: 1;
-  transition: opacity 0.3s ease 0s;
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  width: 128px;
-  height: 128px;
-  transform: translate3d(384px, 384px, 0px);
-`;
-
-const SpeechBubble = styled.div`
-  background: white;
-  font-weight: 800;
-  font-size: 18px;
-  border: 4px solid #000000;
-  position: absolute;
-  padding: 10px 15px;
-  top: -55px;
-  left: -64px;
-  width: 256px;
-  text-align: center;
-  z-index: 3;
-`;
-
-const PersonCrop = styled.div`
-  height: 128px;
-  width: 128px;
-  overflow: hidden;
-  position: relative;
-`;
-
 const WorldBackground = styled.div`
   position: fixed;
   left: 0;
@@ -235,7 +195,7 @@ const WorldBackground = styled.div`
   bottom: 0;
   right: 0;
   transition: background 0.2s ease 0s;
-  background: rgb(161, 242, 162);
+  background: pink;
 `;
 
 const World = styled.div`
@@ -248,6 +208,7 @@ const MapContainer = styled.div`
   height: 1792px;
   width: 2816px;
   position: relative;
+  transition: 0.8s linear;
 `;
 
 const MainContainer = styled.div`
@@ -265,56 +226,5 @@ const Main = styled.main`
   width: 896px;
   height: 896px;
 `;
-
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(22, 1fr);
-  grid-template-rows: repeat(14, 1fr);
-  height: 1792px;
-  width: 2816px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  div {
-    border: 1px dashed black;
-    border-width: 0 1px 1px 0;
-    display: flex; /* flex styling to center content in divs */
-    align-items: center;
-    justify-content: center;
-  }
-`;
-
-// useKeypress Hook
-function useKeyPress(targetKey) {
-  // State for keeping track of whether key is pressed
-  const [keyPressed, setKeyPressed] = useState(false);
-
-  // Add event listeners
-  useEffect(() => {
-    // If pressed key is our target key then set to true
-    function downHandler({ key }) {
-      if (key === targetKey) {
-        setKeyPressed(true);
-      }
-    }
-
-    // If released key is our target key then set to false
-    const upHandler = ({ key }) => {
-      if (key === targetKey) {
-        setKeyPressed(false);
-      }
-    };
-
-    window.addEventListener("keydown", downHandler);
-    window.addEventListener("keyup", upHandler);
-    // Remove event listeners on cleanup
-    return () => {
-      window.removeEventListener("keydown", downHandler);
-      window.removeEventListener("keyup", upHandler);
-    };
-  }, [targetKey]); // Empty array ensures that effect is only run on mount and unmount
-
-  return keyPressed;
-}
 
 export default App;
