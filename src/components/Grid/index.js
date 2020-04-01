@@ -2,9 +2,7 @@ import React from "react";
 
 import { Grid } from "./styles";
 
-const MapGrid = ({ mapWidth, mapHeight }) => {
-  const totalCells = mapWidth * mapHeight;
-
+const MapGrid = ({ mapWidth, mapHeight, pixelSize, show }) => {
   const renderGridCells = (mapWidth, mapHeight) => {
     let i = 0;
     let j = 0;
@@ -16,11 +14,31 @@ const MapGrid = ({ mapWidth, mapHeight }) => {
       }
       j = 0;
     }
-    console.log(cells.length, totalCells);
     return cells;
   };
 
-  return <Grid>{renderGridCells(mapWidth, mapHeight)}</Grid>;
+  return (
+    <>
+      {show && (
+        <Grid pixelSize={pixelSize}>
+          <h2
+            style={{
+              position: "absolute",
+              top: -128,
+              left: 0,
+              background: "black",
+              color: "white",
+              padding: 10
+            }}
+          >{`pixel size: ${pixelSize} | Cell base size: 32 | Cell pixel size ${pixelSize *
+            32} | Map cell dimensions ${mapWidth} x ${mapHeight} | Map pixel dimensions ${mapWidth *
+            pixelSize *
+            32} x ${mapHeight * pixelSize * 32}`}</h2>
+          {renderGridCells(mapWidth, mapHeight)}
+        </Grid>
+      )}
+    </>
+  );
 };
 
 export default MapGrid;

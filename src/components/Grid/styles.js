@@ -4,8 +4,8 @@ export const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(22, 1fr);
   grid-template-rows: repeat(14, 1fr);
-  height: 1792px;
-  width: 2816px;
+  height: ${props => `${448 * props.pixelSize}px`};
+  width: ${props => `${704 * props.pixelSize}px`};
   position: absolute;
   top: 0;
   left: 0;

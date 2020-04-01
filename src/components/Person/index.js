@@ -9,13 +9,6 @@ import {
   StandAnimation
 } from "./styles";
 
-const directionsMap = {
-  DOWN: 0,
-  RIGHT: `${-32 * 4}px`,
-  UP: `${-64 * 4}px`,
-  LEFT: `${-96 * 4}px`
-};
-
 const walk = (startWalk, endWalk) => {
   let steps = 36;
   startWalk();
@@ -34,7 +27,14 @@ const walk = (startWalk, endWalk) => {
   step();
 };
 
-const Person = ({ skinSrc, message, direction, coord }) => {
+const Person = ({ skinSrc, message, direction, coord, pixelSize }) => {
+  const directionsMap = {
+    DOWN: 0,
+    RIGHT: `${-32 * pixelSize}px`,
+    UP: `${-64 * pixelSize}px`,
+    LEFT: `${-96 * pixelSize}px`
+  };
+
   const [currentDirection, setCurrentDirection] = useState(directionsMap.DOWN);
   const [currentBehavior, setCurrentBehavior] = useState(StandAnimation);
   const canvas = useRef(null);
@@ -65,7 +65,7 @@ const Person = ({ skinSrc, message, direction, coord }) => {
   }, [coord]);
 
   return (
-    <PersonContainer>
+    <PersonContainer pixelSize={pixelSize}>
       {message && <SpeechBubble>{message}</SpeechBubble>}
       <PersonCrop>
         <SpriteCanvas

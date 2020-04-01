@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import styled from "styled-components";
 
+import usePixelSize from "./hooks/usePixelSize";
+
 import MapGrid from "./components/Grid";
 import Person from "./components/Person";
 
@@ -25,16 +27,32 @@ const playerData = {};
 const gameData = {};
 
 const App = () => {
+  const pixelSize = usePixelSize();
+
+  const [currentPixelSize, setCurrentPixelSize] = useState(pixelSize);
+
+  useEffect(() => {
+    setCurrentPixelSize(pixelSize);
+  }, [pixelSize]);
   return (
     <MainContainer>
-      <Main>
+      <Main pixelSize={currentPixelSize}>
         <WorldBackground></WorldBackground>
         <World>
-          <Map x={11} y={7} mapSrc="jrq-outside-apartment.png">
-            {/* <MapGrid
+          <Map
+            x={11}
+            y={7}
+            width={worldData.mapData.width * (pixelSize * 32)}
+            height={worldData.mapData.height * (pixelSize * 32)}
+            pixelSize={currentPixelSize}
+            mapSrc="jrq-outside-apartment.png"
+          >
+            <MapGrid
+              show={false}
               mapWidth={worldData.mapData.width}
               mapHeight={worldData.mapData.height}
-            ></MapGrid> */}
+              pixelSize={currentPixelSize}
+            ></MapGrid>
           </Map>
         </World>
       </Main>
@@ -42,9 +60,10 @@ const App = () => {
   );
 };
 
-const Map = ({ x, y, mapSrc, children }) => {
+const Map = ({ x, y, width, height, mapSrc, pixelSize, children }) => {
   const [xPos, setXPos] = useState(x);
   const [yPos, setYPos] = useState(y);
+
   const [currentCoord, setCurrentCoord] = useState(`${xPos}x${yPos}`);
   const [message, setMessage] = useState("");
   const [currentDirection, setCurrentDirection] = useState("DOWN");
@@ -76,7 +95,6 @@ const Map = ({ x, y, mapSrc, children }) => {
       setCurrentDirection("UP");
       setYPos(prevValue => {
         if (walls.includes(`${xPos}x${prevValue - 1}`)) {
-          console.log(`wall at ${xPos}x${prevValue - 1}`);
           setMessage(
             `I can't move up. There's a wall at ${xPos}x${prevValue - 1}!`
           );
@@ -91,7 +109,6 @@ const Map = ({ x, y, mapSrc, children }) => {
       setCurrentDirection("DOWN");
       setYPos(prevValue => {
         if (walls.includes(`${xPos}x${prevValue + 1}`)) {
-          console.log(`wall at ${xPos}x${prevValue + 1}`);
           setMessage(
             `I can't move down. There's a wall at ${xPos}x${prevValue + 1}!`
           );
@@ -105,7 +122,6 @@ const Map = ({ x, y, mapSrc, children }) => {
       setCurrentDirection("LEFT");
       setXPos(prevValue => {
         if (walls.includes(`${prevValue - 1}x${yPos}`)) {
-          console.log(`wall at ${prevValue - 1}x${yPos}`);
           setMessage(
             `I can't move left. There's a wall at ${prevValue - 1}x${yPos}!`
           );
@@ -136,13 +152,17 @@ const Map = ({ x, y, mapSrc, children }) => {
     setMessage(`I'm on cell ${xPos}x${yPos}`);
     setCurrentCoord(`${xPos}x${yPos}`);
   }, [yPos, xPos]);
+
   return (
     <>
       <MapContainer
         style={{
-          transform: `translate3d(${getLeftPosition(xPos)}px, ${getTopPosition(
-            yPos
-          )}px, 0)`
+          height: `${height}px`,
+          width: `${width}px`,
+          transform: `translate3d(
+            ${getLeftPosition(xPos, pixelSize)}px,
+            ${getTopPosition(yPos, pixelSize)}px,
+          0)`
         }}
       >
         <canvas
@@ -150,7 +170,10 @@ const Map = ({ x, y, mapSrc, children }) => {
           ref={canvas}
           width={704}
           height={448}
-          style={{ height: "1792px", width: "2816px" }}
+          style={{
+            height: `${height}px`,
+            width: `${width}px`
+          }}
         ></canvas>
         {children}
       </MapContainer>
@@ -159,33 +182,37 @@ const Map = ({ x, y, mapSrc, children }) => {
         direction={currentDirection}
         skinSrc="ZAK-SHEET.png"
         coord={currentCoord}
+        pixelSize={pixelSize}
       ></Person>
     </>
   );
 };
 
-const getLeftPosition = xPos => {
-  const gridWidth = worldData.mapData.mapStyleWidth;
-  const cellsAcross = worldData.mapData.width;
-  const cellWidth = gridWidth / cellsAcross;
+const getLeftPosition = (xPos, pixelSize) => {
+  const frameWidth = 7; //this could come from a prop or something
+  const cameraSpaceOnLeft = Math.floor(frameWidth / 2); //3 spaces on left of hero
 
-  // 384 is an offset of 3 cells to 0 out the coordinate system
-  const leftPos = -(cellWidth * xPos) + 384;
+  const cellWidth = pixelSize * 32;
+  const cameraOffset = cellWidth * cameraSpaceOnLeft;
 
-  return leftPos;
+  // character offset position to keep them centered
+  const leftPos = -(cellWidth * xPos);
+
+  return leftPos + cameraOffset;
 };
 
-const getTopPosition = yPos => {
-  const gridHeight = worldData.mapData.mapStyleHeight;
-  const cellsDown = worldData.mapData.height;
-  const cellHeight = gridHeight / cellsDown;
+const getTopPosition = (yPos, pixelSize) => {
+  const frameHeight = 7; //this could come from a prop or something
+  const cameraSpaceOnTop = Math.floor(frameHeight / 2); //3 spaces on top of hero
+  const cellHeight = pixelSize * 32;
 
-  // 384 is an offset of 3 cells to 0 out the coordinate system
-  const topPos = -(cellHeight * yPos) + 384;
+  // character offset position to keep them centered
+  const cameraOffset = cellHeight * cameraSpaceOnTop;
+
+  const topPos = -(cellHeight * yPos);
 
   // nudges our main character up half a cell
-  return topPos + 64;
-  // return topPos;
+  return topPos + cellHeight * 0.5 + cameraOffset;
 };
 
 const WorldBackground = styled.div`
@@ -205,8 +232,6 @@ const World = styled.div`
 `;
 
 const MapContainer = styled.div`
-  height: 1792px;
-  width: 2816px;
   position: relative;
   transition: 0.6s linear;
 `;
@@ -223,8 +248,8 @@ const MainContainer = styled.div`
 
 const Main = styled.main`
   position: relative;
-  width: 896px;
-  height: 896px;
+  height: ${props => `${32 * props.pixelSize * 7}px`};
+  width: ${props => `${32 * props.pixelSize * 7}px`};
 `;
 
 export default App;
